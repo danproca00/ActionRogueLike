@@ -17,6 +17,11 @@ class ACTIONROGUELIKE_API ASCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
+protected:
+	//let s us assign a class
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AActor> ProjectileClass;
+
 public:
 	// Sets default values for this character's properties
 	ASCharacter();
@@ -39,6 +44,11 @@ protected:
 	//declare the MoveForward function
 	void MoveForward(float Value /*0 to 1 and 0 to -1*/);
 
+	//declare the MoveRight function
+	void MoveRight(float Value /*0 to 1 and 0 to -1*/);
+
+	//bc it is an action, it doesn t need any parameters
+	void PrimaryAttack();
 
 public:	
 	// Called every frame
