@@ -1,13 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 // This include is added at the top of your SCharacter.cpp file
-#include "SCharacter.h"
 #include "DrawDebugHelpers.h"
+#include "SCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "D:\Epic Games\UE_5.4\Engine\Source\Runtime\Core\Public\Math\RotationMatrix.h"
-#include "SInteractionComponent.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -28,16 +27,11 @@ ASCharacter::ASCharacter()
 	//to be sure that the camera is attached to the character
 	CameraComp->SetupAttachment(SpringArmComp /*to have the distance between the character and the camera*/);
 
-	//instantiate the component
-	InteractionComp = CreateDefaultSubobject<USInteractionComponent>("InteractionComp");
-
 	//get the character movement to set orient to movement rotation -> rotate the character towards whetever the character is moving 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
 	//to have more of a rpg movement style => the character can look towards the camera
 	bUseControllerRotationYaw = false;
-
-	
 }
 
 // Called when the game starts or when spawned
@@ -124,29 +118,11 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	//we want now to BindAccess
 	PlayerInputComponent->BindAction("PrimaryAttack", IE_Pressed /*trigger whenever IE is pressed*/, this /*expects an user object*/, &ASCharacter::PrimaryAttack);
-	
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this , &ASCharacter::Jump);
-
-	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this , &ASCharacter::PrimaryInteract);
 
 }
 
 void ASCharacter::PrimaryAttack()
 {
-	//an animation when we attack
-	PlayAnimMontage(AttackAnim);
-
-	//now we need a timer to not have an "awkward" attack animation
-	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack/*holds a handle to the timer*/, this, &ASCharacter::PrimaryAttack_TimeElapsed/*function to trigger when the timer elapses*/, 0.2f/*delay*/);
-
-	//GetWorldTimerManager.ClearTimer(TimerHandle_PrimaryAttack); //use it if a character dies but he s in the middle of doing an attack -> cancel the attack
-
-	
-}
-
-void ASCharacter::PrimaryAttack_TimeElapsed()
-{
-
 	//search the location of the hand by looking at the "bone" structure
 	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
 
@@ -158,18 +134,5 @@ void ASCharacter::PrimaryAttack_TimeElapsed()
 
 	//spawn the projectile
 	GetWorld()->SpawnActor<AActor>(ProjectileClass /*what class to specify*/, SpawnTM /*transform - struct that holds a location and a scale*/, SpawnParams/*FActor spawn parameter*/);
-
-}
-
-void ASCharacter::PrimaryInteract()
-{
-	//call the function on the components
-	//check for null
-	if (InteractionComp)
-	{
-		InteractionComp->PrimaryInteract();
-	}
-
-	
 }
 

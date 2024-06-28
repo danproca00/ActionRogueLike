@@ -10,8 +10,7 @@
 //to declare the classes bc the compiler will actually not know where to look
 class UCameraComponent;
 class USpringArmComponent;
-class USInteractionComponent;
-class UAnimMontage;
+
 
 UCLASS()
 class ACTIONROGUELIKE_API ASCharacter : public ACharacter
@@ -20,16 +19,8 @@ class ACTIONROGUELIKE_API ASCharacter : public ACharacter
 
 protected:
 	//let s us assign a class
-	UPROPERTY(EditAnywhere, Category = "Attack")
+	UPROPERTY(EditAnywhere)
 	TSubclassOf<AActor> ProjectileClass;
-
-	//attack animation
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	UAnimMontage* AttackAnim;
-
-	FTimerHandle TimerHandle_PrimaryAttack; 
-
-	
 
 public:
 	// Sets default values for this character's properties
@@ -47,10 +38,6 @@ protected:
 	//Add the components to the camera for the character
 	UCameraComponent* CameraComp;
 
-	//add the component
-	UPROPERTY(VisibleAnywhere)
-	USInteractionComponent* InteractionComp;
-
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -62,10 +49,6 @@ protected:
 
 	//bc it is an action, it doesn t need any parameters
 	void PrimaryAttack();
-	
-	void PrimaryAttack_TimeElapsed();
-
-	void PrimaryInteract();
 
 public:	
 	// Called every frame
