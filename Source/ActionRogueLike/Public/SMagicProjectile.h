@@ -23,15 +23,15 @@ public:
 protected:
 
 	//the collision component
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) // to have full acces on blueprint editor
 	USphereComponent* SphereComp;
 	
 	//component that will give a velocity - go into a straight line
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) // to have full acces on blueprint editor
 	UParticleSystemComponent* EffectComp;
 	
 	//something to show in the game world
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) // to have full acces on blueprint editor
 	UProjectileMovementComponent* MovementComp;
 
 	// Called when the game starts or when spawned

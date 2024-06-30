@@ -35,7 +35,7 @@ protected:
 	UStaticMeshComponent* BaseMesh;
 
 	//static mesh component for the lid of the chest
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly) // to have full acces on blueprint editor
 	UStaticMeshComponent* LidMesh;
 
 	// Called when the game starts or when spawned

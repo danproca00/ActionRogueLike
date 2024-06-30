@@ -49,31 +49,34 @@ void USInteractionComponent::PrimaryInteract()
 
 	FVector EyeLocation;
 	FRotator EyeRotation;
-	//bool bBlockingHit = MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation); //fills location and rotation - "did i hit something that was blocking me or we didn t trace anything?"
-	TArray<FHitResult> Hits;
 
-	float Radius = 30.0f;
+	MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
 
-	FCollisionShape Shape;
-	Shape.SetSphere(Radius);
-	
 	FVector End = EyeLocation + (EyeRotation.Vector() * 1000); //extends to the direction we're looking -> character model eye, not our camera
 
-	bool bBlockingHit = GetWorld()->SweepMultiByObjectType(Hits, EyeLocation, End, FQuat::Identity /*empty rotation*/, ObjectQueryParams, Shape/*collision shape*/); //takes a sphere and it moves it virtually from start to end, and it figures out where it finds first blocking hit, anywhere on its radius
-
-	
-
 	//making the hit result
-	/*FHitResult Hit;*/
+	FHitResult Hit;
+
 
 	//collision querries - like spawning an actor
-	//bool bBlockingHit = GetWorld()->LineTraceSingleByObjectType(Hit/*hit result filled wh a bunch of data*/, EyeLocation/*start location*/, End/*end location*/, ObjectQueryParams /*Fcollison object query parameter */); //we want to find anything that is of type world dynamic
+	bool bBlockingHit = GetWorld()->LineTraceSingleByObjectType(Hit/*hit result filled wh a bunch of data*/, EyeLocation/*start location*/, End/*end location*/, ObjectQueryParams /*Fcollison object query parameter */); //we want to find anything that is of type world dynamic
 
-	FColor LineColor = bBlockingHit ? FColor::Green : FColor::Red;
+	//bool bBlockingHit = GetWorld()->GetActorEyesViewPoint(EyeLocation, EyeRotation); //fills location and rotation - "did i hit something that was blocking me or we didn t trace anything?"
+	//TArray<FHitResult> Hits;
+
+	//float Radius = 30.0f;
+
+	//FCollisionShape Shape;
+	//Shape.SetSphere(Radius);
+	
+	
+
+	//bool bBlockingHit = GetWorld()->SweepMultiByObjectType(Hits, EyeLocation, End, FQuat::Identity /*empty rotation*/, ObjectQueryParams, Shape/*collision shape*/); //takes a sphere and it moves it virtually from start to end, and it figures out where it finds first blocking hit, anywhere on its radius
+
 
 	//iterate through the whole array
-	for (FHitResult Hit : Hits)
-	{
+	/*for (FHitResult Hit : Hits)
+	{*/
 		AActor* HitActor = Hit.GetActor(); //bc we want to call the interact function that we created
 		if (HitActor) //hit when it s null
 		{
@@ -84,17 +87,18 @@ void USInteractionComponent::PrimaryInteract()
 				APawn* MyPawn = Cast<APawn>(MyOwner); //this casting type is safer than the regular c style one
 
 				ISGamePlayInterface::Execute_Interact(HitActor, MyPawn);
-				break;
+				//break;
 			}
 
 		}
 		
-		DrawDebugSphere(GetWorld(), Hit.ImpactPoint /*centre*/, Radius, 32 /*the ammount of lines that it will draw the sphere*/, LineColor, false /*persistent lines*/,  2.0f /*time*/);
-	}
+		//DrawDebugSphere(GetWorld(), Hit.ImpactPoint /*centre*/, Radius, 32 /*the ammount of lines that it will draw the sphere*/, LineColor, false /*persistent lines*/,  2.0f /*time*/);
+	//}
 
 	
+	FColor LineColor = bBlockingHit ? FColor::Green : FColor::Red;
+
 	//line for debug purpose - to see where the character is looking
-	
 	DrawDebugLine(GetWorld(), EyeLocation, End, LineColor, false /*persistent lines*/, 2.0f /*time*/, 0 /*priority*/, 2.0f/*thickness*/);
 	
 }

@@ -154,6 +154,7 @@ void ASCharacter::PrimaryAttack_TimeElapsed()
 	FTransform SpawnTM = FTransform(GetControlRotation(), HandLocation/*Location and rotation*/);
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn; //let us specify the rules - we always want to spawn
+	SpawnParams.Instigator = this; //let us know who threw the projectile
 
 
 	//spawn the projectile
