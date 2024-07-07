@@ -46,7 +46,14 @@ void ASExplosiveBarrel::OnActorHit(UPrimitiveComponent* HitComponent, AActor* Ot
 {
 	ForceComp->FireImpulse();
 
+	//a macro to print/log things to the log console
+	UE_LOG(LogTemp /*category name*/, Log/*verbosity - log, error, warning*/, TEXT("OnActorHit in Explosive Barrel")/*message*/);
 
-	/*FString CombinedString = FString::Printf(TEXT("Hit at location: %s"), *Hit.ImpactPoint.ToString());
-	DrawDebugString(GetWorld(), Hit.ImpactPoint, CombinedString, nullptr, FColor::Green, 2.0f, true);*/
+	//to print the name of the other actor
+	UE_LOG(LogTemp, Warning, TEXT("OtherActor: %s, at the game time: %f"), /*OtherActor->GetName() is not safe, so solution:*/ *GetNameSafe(OtherActor), GetWorld()->TimeSeconds /*the time in seconds since we started the game*/);
+
+	//to draw the string in 3d not in log
+	FString CombinedString = FString::Printf(TEXT("Hit at location: %s"), *Hit.ImpactPoint.ToString() /*we have to convert vector to string*/);
+	DrawDebugString(GetWorld(), Hit.ImpactPoint/*text location*/, CombinedString/*make a string*/, nullptr /*if we pass the explosive barrel we draw where the explosive barrel is*/, FColor::Green, 2.0f /*duration*/, true /*draw wh a shadow*/);
+	
 }

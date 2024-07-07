@@ -125,7 +125,7 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	//we want now to BindAccess
 	PlayerInputComponent->BindAction("PrimaryAttack", IE_Pressed /*trigger whenever IE is pressed*/, this /*expects an user object*/, &ASCharacter::PrimaryAttack);
 	
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this , &ASCharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this , &ACharacter::Jump);
 
 	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this , &ASCharacter::PrimaryInteract);
 
@@ -146,19 +146,24 @@ void ASCharacter::PrimaryAttack()
 
 void ASCharacter::PrimaryAttack_TimeElapsed()
 {
+	//assertions for debugging
+	if (ensure(ProjectileClass)) //not a null pointer - ok -> continue, x - assertion error
+	{
+		//search the location of the hand by looking at the "bone" structure
+		FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
 
-	//search the location of the hand by looking at the "bone" structure
-	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
-
-	//FTransform SpawnTM = FTransform(GetControlRotation(), GetActorLocation()/*Location and rotation*/);
-	FTransform SpawnTM = FTransform(GetControlRotation(), HandLocation/*Location and rotation*/);
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn; //let us specify the rules - we always want to spawn
-	SpawnParams.Instigator = this; //let us know who threw the projectile
+		//FTransform SpawnTM = FTransform(GetControlRotation(), GetActorLocation()/*Location and rotation*/);
+		FTransform SpawnTM = FTransform(GetControlRotation(), HandLocation/*Location and rotation*/);
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn; //let us specify the rules - we always want to spawn
+		SpawnParams.Instigator = this; //let us know who threw the projectile
 
 
-	//spawn the projectile
-	GetWorld()->SpawnActor<AActor>(ProjectileClass /*what class to specify*/, SpawnTM /*transform - struct that holds a location and a scale*/, SpawnParams/*FActor spawn parameter*/);
+		//spawn the projectile
+		GetWorld()->SpawnActor<AActor>(ProjectileClass /*what class to specify*/, SpawnTM /*transform - struct that holds a location and a scale*/, SpawnParams/*FActor spawn parameter*/);
+	}
+
+	
 
 }
 
