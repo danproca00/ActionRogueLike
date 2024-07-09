@@ -5,7 +5,7 @@
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Particles/ParticleSystemComponent.h"
-
+#include "SAttributeComponent.h"
 
 // Sets default values
 ASMagicProjectile::ASMagicProjectile()
@@ -21,6 +21,8 @@ ASMagicProjectile::ASMagicProjectile()
 	//SphereComp->SetCollisionResponseToAllChannels(ECR_Ignore);
 	//SphereComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	SphereComp->SetCollisionProfileName("Projectile"); //set the profile names from the blueprint - collision present
+
+	SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ASMagicProjectile::OnActorOverlap); //bind to the figure
 	
 	RootComponent = SphereComp;
 
@@ -34,11 +36,29 @@ ASMagicProjectile::ASMagicProjectile()
 
 }
 
+void ASMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	//check if the actor that we hit is still valid (not a null), we need to get the component (the attribute component), then we want to call that apply health change function on it
+	if (OtherActor)
+	{
+		USAttributeComponent* AttributeComp = Cast<USAttributeComponent>(OtherActor->GetComponentByClass(USAttributeComponent::StaticClass()));
+
+		if (AttributeComp)
+		{
+			AttributeComp->ApplyHealthChange(-20.0f);
+
+			Destroy();
+		}
+	}
+}
+
 // Called when the game starts or when spawned
 void ASMagicProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	//overlap event - whenever we overlap wh that pawn -> we actually are able to make a change to that health value
+
 }
 
 // Called every frame

@@ -8,6 +8,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "D:\Epic Games\UE_5.4\Engine\Source\Runtime\Core\Public\Math\RotationMatrix.h"
 #include "SInteractionComponent.h"
+#include "SAttributeComponent.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -30,6 +31,9 @@ ASCharacter::ASCharacter()
 
 	//instantiate the component
 	InteractionComp = CreateDefaultSubobject<USInteractionComponent>("InteractionComp");
+	
+	//instantiate the component
+	AttributeComp = CreateDefaultSubobject<USAttributeComponent>("AttributeComp");
 
 	//get the character movement to set orient to movement rotation -> rotate the character towards whetever the character is moving 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
