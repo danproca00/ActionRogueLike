@@ -39,7 +39,7 @@ ASMagicProjectile::ASMagicProjectile()
 void ASMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	//check if the actor that we hit is still valid (not a null), we need to get the component (the attribute component), then we want to call that apply health change function on it
-	if (OtherActor)
+	if (OtherActor && OtherActor != GetInstigator())
 	{
 		USAttributeComponent* AttributeComp = Cast<USAttributeComponent>(OtherActor->GetComponentByClass(USAttributeComponent::StaticClass()));
 
