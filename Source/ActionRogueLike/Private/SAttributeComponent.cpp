@@ -11,6 +11,11 @@ USAttributeComponent::USAttributeComponent()
 }
 
 
+//iplementation of a function that we see if the character is alive or not
+bool USAttributeComponent::IsAlive() const
+{
+	return Health > 0.0f;
+}
 
 //implementation of the health changes
 bool USAttributeComponent::ApplyHealthChange(float Delta)

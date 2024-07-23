@@ -38,6 +38,11 @@ protected:
 	//HealthMax, Stamina, Strenght
 
 public:	
+
+	//a function that we see if the character is alive or not
+	UFUNCTION(BlueprintCallable)
+	bool IsAlive() const;
+
 	UPROPERTY(BlueprintAssignable)
 	FOHealthChanged OnHealthChanged;
 

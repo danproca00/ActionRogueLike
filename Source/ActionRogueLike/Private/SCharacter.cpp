@@ -44,11 +44,20 @@ ASCharacter::ASCharacter()
 	
 }
 
+void ASCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	//bind the on health changed
+	AttributeComp->OnHealthChanged.AddDynamic(this, &ASCharacter::OnHealthChanged);
+}
+
 // Called when the game starts or when spawned
 void ASCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	AttackAnimDelay = 0.2f;
 }
 
 //the implementation of the MoveForwardFunction
@@ -133,6 +142,15 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this , &ASCharacter::PrimaryInteract);
 
+	{
+		PlayAnimMontage(AttackAnim);
+
+		GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::PrimaryAttack_TimeElapsed, 0.2f);
+
+		//GetWorldTimerManager().ClearTimer(TimerHandle_PrimaryAttack);
+		GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::PrimaryAttack_TimeElapsed, AttackAnimDelay);
+	}
+
 }
 
 void ASCharacter::PrimaryAttack()
@@ -150,26 +168,97 @@ void ASCharacter::PrimaryAttack()
 
 void ASCharacter::PrimaryAttack_TimeElapsed()
 {
-	//assertions for debugging
-	if (ensure(ProjectileClass)) //not a null pointer - ok -> continue, x - assertion error
+	if (ensure(ProjectileClass))
+		SpawnProjectile(ProjectileClass);
+}
+
+
+void ASCharacter::BlackHoleAttack()
+{
+	PlayAnimMontage(AttackAnim);
+
+	GetWorldTimerManager().SetTimer(TimerHandle_BlackholeAttack, this, &ASCharacter::BlackholeAttack_TimeElapsed, AttackAnimDelay);
+}
+
+
+void ASCharacter::BlackholeAttack_TimeElapsed()
+{
+	SpawnProjectile(BlackHoleProjectileClass);
+}
+
+
+void ASCharacter::Dash()
+{
+	PlayAnimMontage(AttackAnim);
+
+	GetWorldTimerManager().SetTimer(TimerHandle_Dash, this, &ASCharacter::Dash_TimeElapsed, AttackAnimDelay);
+}
+
+
+void ASCharacter::Dash_TimeElapsed()
+{
+	SpawnProjectile(DashProjectileClass);
+}
+
+
+void ASCharacter::SpawnProjectile(TSubclassOf<AActor> ClassToSpawn)
+{
+	if (ensureAlways(ClassToSpawn))
 	{
-		//search the location of the hand by looking at the "bone" structure
 		FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
 
-		//FTransform SpawnTM = FTransform(GetControlRotation(), GetActorLocation()/*Location and rotation*/);
-		FTransform SpawnTM = FTransform(GetControlRotation(), HandLocation/*Location and rotation*/);
+		FTransform SpawnTM = FTransform(GetControlRotation(), HandLocation);
+
 		FActorSpawnParameters SpawnParams;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn; //let us specify the rules - we always want to spawn
-		SpawnParams.Instigator = this; //let us know who threw the projectile
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		SpawnParams.Instigator = this;
 
+		GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+		FHitResult Hit;
+		FVector TraceStart = CameraComp->GetComponentLocation();
+		// endpoint far into the look-at distance (not too far, still adjust somewhat towards crosshair on a miss)
+		FVector TraceEnd = CameraComp->GetComponentLocation() + (GetControlRotation().Vector() * 5000);
 
-		//spawn the projectile
-		GetWorld()->SpawnActor<AActor>(ProjectileClass /*what class to specify*/, SpawnTM /*transform - struct that holds a location and a scale*/, SpawnParams/*FActor spawn parameter*/);
+		FCollisionShape Shape;
+		Shape.SetSphere(20.0f);
+
+		// Ignore Player
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
+
+		FCollisionObjectQueryParams ObjParams;
+		ObjParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+		ObjParams.AddObjectTypesToQuery(ECC_WorldStatic);
+		ObjParams.AddObjectTypesToQuery(ECC_Pawn);
+
+		FRotator ProjRotation;
+		// true if we got to a blocking hit (Alternative: SweepSingleByChannel with ECC_WorldDynamic)
+		if (GetWorld()->SweepSingleByObjectType(Hit, TraceStart, TraceEnd, FQuat::Identity, ObjParams, Shape, Params))
+		{
+			// Adjust location to end up at crosshair look-at
+			ProjRotation = FRotationMatrix::MakeFromX(Hit.ImpactPoint - HandLocation).Rotator();
+		}
+		else
+		{
+			// Fall-back since we failed to find any blocking hit
+			ProjRotation = FRotationMatrix::MakeFromX(TraceEnd - HandLocation).Rotator();
+		}
+
 	}
-
-	
-
 }
+
+void ASCharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta)
+{
+	//check if new health is smaller or = wh 0 and delta < 0 (then we re damaged and if it s higer we re healed)
+	if (NewHealth <= 0.0f && Delta < 0.0f)
+	{
+		//after we died we re not able to move around anymore
+		APlayerController* PC =  Cast<APlayerController>(GetController());
+		DisableInput(PC);
+	}
+}
+
+
 
 void ASCharacter::PrimaryInteract()
 {
