@@ -41,6 +41,8 @@ ASCharacter::ASCharacter()
 	//to have more of a rpg movement style => the character can look towards the camera
 	bUseControllerRotationYaw = false;
 
+	TimeToHitParamName = "TimeToHit";
+
 	
 }
 
@@ -249,6 +251,12 @@ void ASCharacter::SpawnProjectile(TSubclassOf<AActor> ClassToSpawn)
 
 void ASCharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta)
 {
+
+	if (Delta < 0.0f)
+	{
+		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->TimeSeconds);
+	}
+
 	//check if new health is smaller or = wh 0 and delta < 0 (then we re damaged and if it s higer we re healed)
 	if (NewHealth <= 0.0f && Delta < 0.0f)
 	{

@@ -7,6 +7,7 @@
 #include "SAICharacter.generated.h"
 
 class UPawnSensingComponent;
+class USAttributeComponent;
 
 UCLASS()
 class ACTIONROGUELIKE_API ASAICharacter : public ACharacter
@@ -18,8 +19,18 @@ public:
 	ASAICharacter();
 
 protected:
+	UPROPERTY(VisibleAnywhere, Category = "Effects")
+	FName TimeToHitParamName;
+
+	void SetTargetActor(AActor* NewTarget);
 
 	virtual void PostInitializeComponents() override;
+
+	UFUNCTION()
+	void OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	USAttributeComponent* AttributeComp;
 
 	//help us give a sight of hearning to AI
 	UPROPERTY(VisibleAnywhere, Category = "Components")

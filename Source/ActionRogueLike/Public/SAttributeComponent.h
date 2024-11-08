@@ -16,10 +16,25 @@ class ACTIONROGUELIKE_API USAttributeComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:	
+
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+	static USAttributeComponent* GetAttributes(AActor* FromActor);
+
+	UFUNCTION(BlueprintCallable, Category = "Attributes", meta = (DisplayName = "IsAlive"))
+	static bool IsActorAlive(AActor* Actor);
+
 	// Sets default values for this component's properties
 	USAttributeComponent();
 
 protected:
+
+	/*UFUNCTION(BlueprintCallable, Category = "Attributes")
+	static USAttributeComponent* GetAttributes(AActor* FromActor);
+
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+	static bool IsActorAlive(AActor* Actor);*/
+
+
 	//add a health component
 
 	// EditAnywhere - edit in BP editor and per-instance in level.
@@ -36,7 +51,8 @@ protected:
 	float Health; //it is under protected bc we don t want people/other classes to to give direct access to it, but we have to make sure that blueprint has some kind of access to it  
 
 	//HealthMax, Stamina, Strenght
-
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
+	float HealthMax;
 public:	
 
 	//a function that we see if the character is alive or not
@@ -48,7 +64,13 @@ public:
 
 	//a function to give access to apply a health change - we want the outside to have the access to that
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
-	bool ApplyHealthChange(float Delta); //it is a bool -I want to be able to return to whoever called us & whether or not the change actually succeded
+	bool ApplyHealthChange(AActor* InstigatorActor, float Delta); //it is a bool -I want to be able to return to whoever called us & whether or not the change actually succeded
+
+	UFUNCTION(BlueprintCallable)
+	float IsFullHealth() const;
+
+	UFUNCTION(BlueprintCallable)
+	float GetHealthMax() const;
 
 		
 };

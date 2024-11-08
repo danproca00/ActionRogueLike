@@ -27,6 +27,37 @@ void ASGameModeBase::StartPlay()
 
 void ASGameModeBase::SpawnTimerElapsed()
 {
+
+	//a limit to not spawn infinite ai bots
+	int32 NrOfAliveBots = 0;
+	for (TActorIterator<ASAICharacter> It(GetWorld()); It; ++It)
+	{
+		ASAICharacter* Bot = *It;
+
+		USAttributeComponent* AttributeComp = USAttributeComponent::GetAttributes(Bot);
+		if (ensure(AttributeComp) && AttributeComp->IsAlive())
+		{
+			NrOfAliveBots++;
+		}
+	}
+
+	//debug to know how many alive bots we found
+	UE_LOG(LogTemp, Log, TEXT("Found %i alive bots"), NrOfAliveBots);
+
+	//the maximum of bots
+	float MaxBotCount = 10.0f;
+
+	if (DifficultyCurve)
+	{
+		MaxBotCount = DifficultyCurve->GetFloatValue(GetWorld()->TimeSeconds /*time increseas => more bots*/);
+	}
+	if (NrOfAliveBots >= MaxBotCount)
+	{
+		//if we are at the max capacity
+		UE_LOG(LogTemp, Log, TEXT("At maximum capacity. Skipping bots spawn."));
+		return;
+	}
+
 	//where we re doing the EQS query
 	UEnvQueryInstanceBlueprintWrapper* QueryInstance =  UEnvQueryManager::RunEQSQuery(this, SpawnBotQuery, this, EEnvQueryRunMode::RandomBest5Pct, nullptr);
 	if (ensure(QueryInstance)) 
@@ -44,38 +75,14 @@ void ASGameModeBase::OnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryIn
 		return;
 	}
 
-	//a limit to not spawn infinite ai bots
-	int32 NrOfAliveBots = 0;
-	for (TActorIterator<ASAICharacter> It(GetWorld()); It; ++It)
-	{
-		ASAICharacter* Bot = *It;
-
-		USAttributeComponent* AttributeComp = Cast<USAttributeComponent>(Bot->GetComponentByClass(USAttributeComponent::StaticClass()));
-		if (ensure(AttributeComp) && AttributeComp->IsAlive())
-		{
-			NrOfAliveBots++;
-		}
-	}
-	
-	//the maximum of bots
-	float MaxBotCount = 10.0f;
-
-	if (DifficultyCurve)
-	{
-		MaxBotCount = DifficultyCurve->GetFloatValue(GetWorld()->TimeSeconds /*time increseas => more bots*/);
-	}
-	if (NrOfAliveBots >= MaxBotCount)
-	{
-		return;
-	}
-
 	//we have to make sure that is not a null pointer
-	
-
 	TArray<FVector> Locations = QueryInstance->GetResultsAsLocations();
 
 	if (Locations.IsValidIndex(0))
 	{
 		GetWorld()->SpawnActor<AActor>(MinionClass, Locations[0], FRotator::ZeroRotator);
+
+		//track all the used spawn locations 
+		DrawDebugSphere(GetWorld(), Locations[0], 50.0f, 20, FColor::Blue, false, 60.0f);
 	}
 }

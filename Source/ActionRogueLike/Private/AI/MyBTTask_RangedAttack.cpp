@@ -1,43 +1,45 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "AI/MyBTTask_RangedAttack.h"
 #include "AIController.h"
-#include "GameFramework\Character.h"
-#include "BehaviorTree\BlackboardComponent.h"
+#include "GameFramework/Character.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "SAttributeComponent.h"
 
-//spawn a projetile in the direction of the actor (target actor)
+UMyBTTask_RangedAttack::UMyBTTask_RangedAttack()
+{
+    MaxBulletSpread = 2.0f;
+}
+
+// Spawn a projectile in the direction of the actor (target actor)
 EBTNodeResult::Type UMyBTTask_RangedAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	AAIController* MyController = OwnerComp.GetAIOwner();
-	if (ensure(MyController))
-	{
-		//we do this bc we want to get the muzzle location
-		ACharacter* MyPawn = Cast<ACharacter>(MyController->GetPawn());
+    AAIController* MyController = OwnerComp.GetAIOwner();
+    if (ensure(MyController))
+    {
+        ACharacter* MyPawn = Cast<ACharacter>(MyController->GetPawn());
+        if (MyPawn == nullptr)
+        {
+            return EBTNodeResult::Failed;
+        }
 
-		if (MyPawn == nullptr)
-		{
-			return EBTNodeResult::Failed;
-		}
+        FVector MuzzleLocation = MyPawn->GetMesh()->GetSocketLocation("Muzzle_01");
+        AActor* TargetActor = Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("TargetActor"));
+        if (TargetActor == nullptr || !USAttributeComponent::IsActorAlive(TargetActor))
+        {
+            return EBTNodeResult::Failed;
+        }
 
-		FVector MuzzleLocation = MyPawn->GetMesh()->GetSocketLocation("Muzzle_01");
+        FVector Direction = TargetActor->GetActorLocation() - MuzzleLocation;
+        FRotator MuzzleRotation = Direction.Rotation();
+        MuzzleRotation.Pitch += FMath::RandRange(0.0f, MaxBulletSpread);
+        MuzzleRotation.Yaw += FMath::RandRange(-MaxBulletSpread, MaxBulletSpread);
 
-		AActor* TargetActor = Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("TargetActor"));
-		if (TargetActor == nullptr)
-		{
-			return EBTNodeResult::Failed;
-		}
+        FActorSpawnParameters Params;
+        Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        Params.Instigator = MyPawn;
 
-		FVector Direction = TargetActor->GetActorLocation() - MuzzleLocation;
-		FRotator MuzzleRotation = Direction.Rotation();
+        AActor* NewProj = GetWorld()->SpawnActor<AActor>(ProjectileClass, MuzzleLocation, MuzzleRotation, Params);
+        return NewProj ? EBTNodeResult::Succeeded : EBTNodeResult::Failed;
+    }
 
-		FActorSpawnParameters Params;
-		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		AActor* NewProj = GetWorld()->SpawnActor<AActor>(ProjectileClass, MuzzleLocation, MuzzleRotation, Params);
-
-		return NewProj ? EBTNodeResult::Succeeded : EBTNodeResult::Failed;
-	}
-
-
-	return EBTNodeResult::Failed;
+    return EBTNodeResult::Failed;
 }

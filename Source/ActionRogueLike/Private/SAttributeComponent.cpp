@@ -1,31 +1,57 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "SAttributeComponent.h"
-
-// Sets default values for this component's properties
 USAttributeComponent::USAttributeComponent()
 {
-	//default value to health
-	Health = 100;
+	HealthMax = 100;
+	Health = HealthMax;
 }
-
-
-//iplementation of a function that we see if the character is alive or not
 bool USAttributeComponent::IsAlive() const
 {
 	return Health > 0.0f;
 }
-
-//implementation of the health changes
-bool USAttributeComponent::ApplyHealthChange(float Delta)
+float USAttributeComponent::IsFullHealth() const
 {
-	Health += Delta;
-
-	//whenever the health is changed, call on health change and in order to trigger this - we call broadcast & we have to pass in the parameters from the macro
-	OnHealthChanged.Broadcast(nullptr, this, Health, Delta);
-
-	return true;
+	return Health == HealthMax;
+}
+float USAttributeComponent::GetHealthMax() const
+{
+	return HealthMax;
 }
 
 
+//bool USAttributeComponent::ApplyHealthChange(float Delta)
+bool USAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Delta)
+{
+	float OldHealth = Health;
+
+	Health = FMath::Clamp(Health + Delta, 0.0f, HealthMax);
+
+	float ActualDelta = Health - OldHealth;
+	//OnHealthChanged.Broadcast(nullptr, this, Health, ActualDelta); // @fixme: Still nullptr for InstigatorActor parameter
+	OnHealthChanged.Broadcast(InstigatorActor, this, Health, ActualDelta);
+
+	return ActualDelta != 0;
+}
+
+
+USAttributeComponent* USAttributeComponent::GetAttributes(AActor* FromActor)
+{
+	if (FromActor)
+	{
+		return Cast<USAttributeComponent>(FromActor->GetComponentByClass(USAttributeComponent::StaticClass()));
+	}
+
+	return nullptr;
+}
+
+
+bool USAttributeComponent::IsActorAlive(AActor* Actor)
+{
+	USAttributeComponent* AttributeComp = GetAttributes(Actor);
+	if (AttributeComp)
+	{
+		return AttributeComp->IsAlive();
+	}
+
+	return false;
+}

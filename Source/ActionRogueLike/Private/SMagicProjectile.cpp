@@ -42,13 +42,14 @@ void ASMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent,
 	if (OtherActor && OtherActor != GetInstigator())
 	{
 		USAttributeComponent* AttributeComp = Cast<USAttributeComponent>(OtherActor->GetComponentByClass(USAttributeComponent::StaticClass()));
-
 		if (AttributeComp)
 		{
-			AttributeComp->ApplyHealthChange(-20.0f);
+			AActor* InstigatorActor = GetInstigator(); // Get the actor that caused the projectile to be spawned
+			AttributeComp->ApplyHealthChange(InstigatorActor, -20.0f);
 
 			Destroy();
 		}
+
 	}
 }
 
