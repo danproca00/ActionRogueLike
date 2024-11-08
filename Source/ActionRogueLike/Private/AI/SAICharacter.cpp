@@ -18,7 +18,7 @@ ASAICharacter::ASAICharacter()
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
-	TimeToHitParamName = "TimeOfHit";
+	TimeToHitParamName = "TimeToHit";
 }
 
 
