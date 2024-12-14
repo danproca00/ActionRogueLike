@@ -44,4 +44,7 @@ public:
 
 // it s similar to begin play -> calls it on all the actors in the game world
 	virtual void StartPlay() override;
+
+	UFUNCTION(Exec)
+	void KillAll();
 };

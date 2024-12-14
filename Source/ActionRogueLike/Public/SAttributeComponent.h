@@ -55,6 +55,9 @@ protected:
 	float HealthMax;
 public:	
 
+	UFUNCTION(BlueprintCallable)
+	bool Kill(AActor InstigatorActor);
+
 	//a function that we see if the character is alive or not
 	UFUNCTION(BlueprintCallable)
 	bool IsAlive() const;
