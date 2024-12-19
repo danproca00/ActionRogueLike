@@ -103,6 +103,8 @@ protected:
 	//bind OnHealthChaned
 	virtual void PostInitializeComponents() override;
 
+	virtual FVector GetPawnViewLocation() const override;
+
 public:	
 
 	//ASCharacter();

@@ -6,6 +6,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "SAttributeComponent.h"
+#include "SGameplayFunctionLibrary.h"
 
 // Sets default values
 ASMagicProjectile::ASMagicProjectile()
@@ -24,6 +25,7 @@ ASMagicProjectile::ASMagicProjectile()
 
 	SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ASMagicProjectile::OnActorOverlap); //bind to the figure
 	
+
 	RootComponent = SphereComp;
 
 	EffectComp = CreateDefaultSubobject<UParticleSystemComponent>("EffectComp");
@@ -41,12 +43,17 @@ void ASMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent,
 	//check if the actor that we hit is still valid (not a null), we need to get the component (the attribute component), then we want to call that apply health change function on it
 	if (OtherActor && OtherActor != GetInstigator())
 	{
-		USAttributeComponent* AttributeComp = Cast<USAttributeComponent>(OtherActor->GetComponentByClass(USAttributeComponent::StaticClass()));
-		if (AttributeComp)
-		{
-			AActor* InstigatorActor = GetInstigator(); // Get the actor that caused the projectile to be spawned
-			AttributeComp->ApplyHealthChange(InstigatorActor, -20.0f);
+		//USAttributeComponent* AttributeComp = Cast<USAttributeComponent>(OtherActor->GetComponentByClass(USAttributeComponent::StaticClass()));
+		//if (AttributeComp)
+		//{
+		//	AActor* InstigatorActor = GetInstigator(); // Get the actor that caused the projectile to be spawned
+		//	AttributeComp->ApplyHealthChange(InstigatorActor, -20.0f);
 
+		//	Destroy();
+		//}
+
+		if (USGameplayFunctionLibrary::ApplyDirectionalDamage(GetInstigator(), OtherActor, 20.0f, SweepResult))
+		{
 			Destroy();
 		}
 

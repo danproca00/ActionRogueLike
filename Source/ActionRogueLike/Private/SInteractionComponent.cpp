@@ -6,6 +6,8 @@
 #include "DrawDebugHelpers.h"
 
 
+static TAutoConsoleVariable<bool> CVarDebugDrawInteraction(TEXT("su.InteractionDebugDraw"), false, TEXT("Enable Debug Lines for  Interact Component."), ECVF_Cheat);
+
 // Sets default values for this component's properties
 USInteractionComponent::USInteractionComponent()
 {
@@ -38,6 +40,8 @@ void USInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void USInteractionComponent::PrimaryInteract()
 {
+	bool bDebugDraw = CVarDebugDrawInteraction.GetValueOnGameThread();
+
 	FCollisionObjectQueryParams ObjectQueryParams;
 	//add object types to query
 	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
@@ -45,6 +49,7 @@ void USInteractionComponent::PrimaryInteract()
 	//to fill up start and end
 	AActor* MyOwner = GetOwner(); //in this case it s going to be the character
 	//FVector Start;
+
 
 
 	FVector EyeLocation;
@@ -98,7 +103,11 @@ void USInteractionComponent::PrimaryInteract()
 	
 	FColor LineColor = bBlockingHit ? FColor::Green : FColor::Red;
 
-	//line for debug purpose - to see where the character is looking
-	DrawDebugLine(GetWorld(), EyeLocation, End, LineColor, false /*persistent lines*/, 2.0f /*time*/, 0 /*priority*/, 2.0f/*thickness*/);
+	if (bDebugDraw)
+	{
+		//line for debug purpose - to see where the character is looking
+		DrawDebugLine(GetWorld(), EyeLocation, End, LineColor, false /*persistent lines*/, 2.0f /*time*/, 0 /*priority*/, 2.0f/*thickness*/);
+	}
+	
 	
 }
