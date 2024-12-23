@@ -9,6 +9,7 @@
 #include "D:\Epic Games\UE_5.4\Engine\Source\Runtime\Core\Public\Math\RotationMatrix.h"
 #include "SInteractionComponent.h"
 #include "SAttributeComponent.h"
+#include "SActionComponent.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -34,6 +35,8 @@ ASCharacter::ASCharacter()
 	
 	//instantiate the component
 	AttributeComp = CreateDefaultSubobject<USAttributeComponent>("AttributeComp");
+
+	ActionComp = CreateDefaultSubobject<USActionComponent>("ActionComp");
 
 	//get the character movement to set orient to movement rotation -> rotate the character towards whetever the character is moving 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
@@ -64,7 +67,7 @@ void ASCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	AttackAnimDelay = 0.2f;
+	//AttackAnimDelay = 0.2f;
 }
 
 //the implementation of the MoveForwardFunction
@@ -102,6 +105,16 @@ void ASCharacter::MoveRight(float Value)
 	AddMovementInput(RightVector, Value);
 
 	
+}
+
+void ASCharacter::SprintStart()
+{
+	ActionComp->StartActionByName(this, "Sprint");
+}
+
+void ASCharacter::SprintStop()
+{
+	ActionComp->StopActionByName(this, "Sprint");
 }
 
 // Called every frame
@@ -144,18 +157,21 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	//we want now to BindAccess
 	PlayerInputComponent->BindAction("PrimaryAttack", IE_Pressed /*trigger whenever IE is pressed*/, this /*expects an user object*/, &ASCharacter::PrimaryAttack);
+
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASCharacter::SprintStart);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASCharacter::SprintStop);
 	
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this , &ACharacter::Jump);
 
 	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this , &ASCharacter::PrimaryInteract);
 
 	{
-		PlayAnimMontage(AttackAnim);
+		//PlayAnimMontage(AttackAnim);
 
-		GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::PrimaryAttack_TimeElapsed, 0.2f);
+		//GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::PrimaryAttack_TimeElapsed, 0.2f);
 
 		//GetWorldTimerManager().ClearTimer(TimerHandle_PrimaryAttack);
-		GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::PrimaryAttack_TimeElapsed, AttackAnimDelay);
+		//GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::PrimaryAttack_TimeElapsed, AttackAnimDelay);
 	}
 
 }
@@ -167,50 +183,55 @@ void ASCharacter::HealSelf(float Amount)
 
 void ASCharacter::PrimaryAttack()
 {
-	//an animation when we attack
-	PlayAnimMontage(AttackAnim);
+	////an animation when we attack
+	//PlayAnimMontage(AttackAnim);
 
-	//now we need a timer to not have an "awkward" attack animation
-	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack/*holds a handle to the timer*/, this, &ASCharacter::PrimaryAttack_TimeElapsed/*function to trigger when the timer elapses*/, 0.2f/*delay*/);
+	////now we need a timer to not have an "awkward" attack animation
+	//GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack/*holds a handle to the timer*/, this, &ASCharacter::PrimaryAttack_TimeElapsed/*function to trigger when the timer elapses*/, 0.2f/*delay*/);
 
-	//GetWorldTimerManager.ClearTimer(TimerHandle_PrimaryAttack); //use it if a character dies but he s in the middle of doing an attack -> cancel the attack
+	////GetWorldTimerManager.ClearTimer(TimerHandle_PrimaryAttack); //use it if a character dies but he s in the middle of doing an attack -> cancel the attack
+
+	ActionComp->StartActionByName(this, "PrimaryAttack");
 
 	
 }
 
-void ASCharacter::PrimaryAttack_TimeElapsed()
-{
-	if (ensure(ProjectileClass))
-		SpawnProjectile(ProjectileClass);
-}
+//void ASCharacter::PrimaryAttack_TimeElapsed()
+//{
+//	if (ensure(ProjectileClass))
+//		SpawnProjectile(ProjectileClass);
+//}
 
 
 void ASCharacter::BlackHoleAttack()
 {
-	PlayAnimMontage(AttackAnim);
+	/*PlayAnimMontage(AttackAnim);
 
-	GetWorldTimerManager().SetTimer(TimerHandle_BlackholeAttack, this, &ASCharacter::BlackholeAttack_TimeElapsed, AttackAnimDelay);
+	GetWorldTimerManager().SetTimer(TimerHandle_BlackholeAttack, this, &ASCharacter::BlackholeAttack_TimeElapsed, AttackAnimDelay);*/
+	ActionComp->StartActionByName(this, "Blackhole");
 }
 
 
-void ASCharacter::BlackholeAttack_TimeElapsed()
-{
-	SpawnProjectile(BlackHoleProjectileClass);
-}
+//void ASCharacter::BlackholeAttack_TimeElapsed()
+//{
+//	SpawnProjectile(BlackHoleProjectileClass);
+//}
 
 
 void ASCharacter::Dash()
 {
-	PlayAnimMontage(AttackAnim);
+	/*PlayAnimMontage(AttackAnim);
 
-	GetWorldTimerManager().SetTimer(TimerHandle_Dash, this, &ASCharacter::Dash_TimeElapsed, AttackAnimDelay);
+	GetWorldTimerManager().SetTimer(TimerHandle_Dash, this, &ASCharacter::Dash_TimeElapsed, AttackAnimDelay);*/
+
+	ActionComp->StartActionByName(this, "Dash");
 }
 
 
-void ASCharacter::Dash_TimeElapsed()
-{
-	SpawnProjectile(DashProjectileClass);
-}
+//void ASCharacter::Dash_TimeElapsed()
+//{
+//	SpawnProjectile(DashProjectileClass);
+//}
 
 
 void ASCharacter::SpawnProjectile(TSubclassOf<AActor> ClassToSpawn)
@@ -225,7 +246,7 @@ void ASCharacter::SpawnProjectile(TSubclassOf<AActor> ClassToSpawn)
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		SpawnParams.Instigator = this;
 
-		GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+		//GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
 		FHitResult Hit;
 		FVector TraceStart = CameraComp->GetComponentLocation();
 		// endpoint far into the look-at distance (not too far, still adjust somewhat towards crosshair on a miss)

@@ -13,6 +13,8 @@ class USpringArmComponent;
 class USInteractionComponent;
 class UAnimMontage;
 class USAttributeComponent;
+class USActionComponent;
+
 
 UCLASS()
 class ACTIONROGUELIKE_API ASCharacter : public ACharacter
@@ -25,23 +27,23 @@ protected:
 	FName TimeToHitParamName;
 
 	//let s us assign a class
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	TSubclassOf<AActor> ProjectileClass;
+	/*UPROPERTY(EditAnywhere, Category = "Attack")
+	TSubclassOf<AActor> ProjectileClass;*/
 
 	//attack animation
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	UAnimMontage* AttackAnim;
+	/*UPROPERTY(EditAnywhere, Category = "Attack")
+	UAnimMontage* AttackAnim;*/
 
-	UPROPERTY(EditAnywhere, Category = "Attack")
+	/*UPROPERTY(EditAnywhere, Category = "Attack")
 	TSubclassOf<AActor> BlackHoleProjectileClass;
 
 	UPROPERTY(EditAnywhere, Category = "Attack")
-	TSubclassOf<AActor> DashProjectileClass;
+	TSubclassOf<AActor> DashProjectileClass;*/
 
 
-	FTimerHandle TimerHandle_PrimaryAttack; 
+	/*FTimerHandle TimerHandle_PrimaryAttack; 
 	FTimerHandle TimerHandle_BlackholeAttack;
-	FTimerHandle TimerHandle_Dash;
+	FTimerHandle TimerHandle_Dash;*/
 	
 
 public:
@@ -70,6 +72,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USAttributeComponent* AttributeComp;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	USActionComponent* ActionComp;
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -79,20 +84,18 @@ protected:
 	//declare the MoveRight function
 	void MoveRight(float Value /*0 to 1 and 0 to -1*/);
 
+	void SprintStart();
+
+	void SprintStop();
+
 	//bc it is an action, it doesn t need any parameters
 	void PrimaryAttack();
 	
-	void PrimaryAttack_TimeElapsed();
-
 	void PrimaryInteract();
 
 	void BlackHoleAttack();
 
-	void BlackholeAttack_TimeElapsed();
-
 	void Dash();
-
-	void Dash_TimeElapsed();
 
 	// Re-use spawn logic between attacks
 	void SpawnProjectile(TSubclassOf<AActor> ClassToSpawn);
