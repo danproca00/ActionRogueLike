@@ -3,11 +3,13 @@
 
 #include "SItemChest.h"
 #include "SGamePlayInterface.cpp"
+#include "Components/StaticMeshComponent.h"
+#include "Net/UnrealNetwork.h"
 
 void ASItemChest::Interact_Implementation(APawn* InstigatorPawn)
 {
-	//to open the lid
-	LidMesh->SetRelativeRotation(FRotator(TargetPitch, 0, 0)); //rotator of a pitch 1 out of 10, yaw 0, roll 0 -> it s relative to what is attached to
+	bLidOpened = !bLidOpened;
+	OnRep_LidOpened();
 }
 
 // Sets default values
@@ -25,6 +27,15 @@ ASItemChest::ASItemChest()
 	LidMesh->SetupAttachment(BaseMesh);
 
 	TargetPitch = 110;
+
+	SetReplicates(true);
+}
+
+void ASItemChest::OnRep_LidOpened()
+{
+	float CurrPitch = bLidOpened ? TargetPitch : 0.0f;
+	//to open the lid
+	LidMesh->SetRelativeRotation(FRotator(CurrPitch, 0, 0)); //rotator of a pitch 1 out of 10, yaw 0, roll 0 -> it s relative to what is attached to
 }
 
 // Called when the game starts or when spawned
@@ -39,5 +50,12 @@ void ASItemChest::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void ASItemChest::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ASItemChest, bLidOpened);
 }
 

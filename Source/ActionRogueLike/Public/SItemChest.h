@@ -30,6 +30,13 @@ public:
 	ASItemChest();
 
 protected:
+
+	UPROPERTY(ReplicatedUsing="OnRep_LidOpened", BlueprintReadOnly) //rep notify
+	bool bLidOpened;
+
+	UFUNCTION()
+	void OnRep_LidOpened();
+
 	//static mesh component for the base of the chest
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* BaseMesh;
