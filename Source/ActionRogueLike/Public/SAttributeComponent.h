@@ -47,12 +47,18 @@ protected:
 	// BlueprintReadWrite - read-write access in Blueprints
 	// --
 	// Category = "" - display only for detail panels and blueprint context menu.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Replicated, Category = "Attributes")
 	float Health; //it is under protected bc we don t want people/other classes to to give direct access to it, but we have to make sure that blueprint has some kind of access to it  
 
 	//HealthMax, Stamina, Strenght
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Replicated, Category = "Attributes")
 	float HealthMax;
+
+	/*UPROPERTY(ReplicatedUsing="")
+	bool IsAlive;*/
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastHealthChanged(AActor* InstigatorActor, float NewHealth, float Delta);
 public:	
 
 	UFUNCTION(BlueprintCallable)
