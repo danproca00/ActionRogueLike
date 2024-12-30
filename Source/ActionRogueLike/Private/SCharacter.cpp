@@ -294,6 +294,8 @@ void ASCharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent*
 		//after we died we re not able to move around anymore
 		APlayerController* PC =  Cast<APlayerController>(GetController());
 		DisableInput(PC);
+
+		SetLifeSpan(5.0f);
 	}
 }
 
