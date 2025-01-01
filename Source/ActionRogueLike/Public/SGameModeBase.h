@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "EnvironmentQuery\EnvQueryTypes.h" //enums specified by the system
+#include "Engine/DataTable.h"
 #include "SGameModeBase.generated.h"
 
 
@@ -12,6 +13,35 @@ class UEnvQuery;
 class UEnvQueryInstanceBlueprintWrapper;
 class UCurveFloat;
 class USSaveGame;
+class UDataTable;
+class USMonsterData;
+
+
+/* DataTable Row for spawning monsters in game mode  */
+USTRUCT(BlueprintType)
+struct FMonsterInfoRow : public FTableRowBase
+{
+	GENERATED_BODY()
+public:
+	FMonsterInfoRow()
+	{
+		Weight = 1.0f;
+		SpawnCost = 5.0f;
+		KillReward = 20.0f;
+	}
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FPrimaryAssetId MonsterId;
+	//TSubclassOf<AActor> MonsterClass;
+	/* Relative chance to pick this monster */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float Weight;
+	/* Points required by gamemode to spawn this unit. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float SpawnCost;
+	/* Amount of credits awarded to killer of this unit.  */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float KillReward;
+};
 
 UCLASS()
 class ACTIONROGUELIKE_API ASGameModeBase : public AGameModeBase
@@ -26,7 +56,8 @@ protected:
 	USSaveGame* CurrentSaveGame;
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	TSubclassOf<AActor> MinionClass;
+	UDataTable* MonsterTable;
+	//TSubclassOf<AActor> MinionClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	UEnvQuery* SpawnBotQuery;
@@ -47,6 +78,9 @@ protected:
 
 	UFUNCTION()
 	void RespawnPlayerElapsed(AController* Controller);
+
+	UFUNCTION()
+	void OnMonsterLoaded(FPrimaryAssetId LoadedId, FVector SpawnLocation);
 public:
 
 

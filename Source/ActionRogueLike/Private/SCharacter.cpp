@@ -44,6 +44,9 @@ ASCharacter::ASCharacter()
 	//to have more of a rpg movement style => the character can look towards the camera
 	bUseControllerRotationYaw = false;
 
+	// Enabled on mesh to react to incoming projectiles
+	GetMesh()->SetGenerateOverlapEvents(true);
+
 	TimeToHitParamName = "TimeToHit";
 
 	

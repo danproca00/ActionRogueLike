@@ -24,6 +24,9 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 	void OnActorLoaded();
 
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	FText GetInteractText(APawn* InstigatorPawn);
+
 	//to expose it in the blueprints later on 
 	UFUNCTION(BlueprintCallable /*we can now call it in the blueprint also*/, BlueprintNativeEvent)//expects a cpp implementation, but we can still implement it in a blueprint
 	void Interact(APawn* InstigatorPawn /*to find out who trigger this function -> pass in the player*/);
