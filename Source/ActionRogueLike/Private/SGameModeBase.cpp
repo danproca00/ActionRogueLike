@@ -13,8 +13,12 @@
 #include "TimerManager.h"
 #include "DrawDebugHelpers.h"
 #include "Engine/World.h"
-
-
+#include "SSaveGame.h"
+#include "SPlayerState.h"
+#include "Kismet\GameplayStatics.h"
+#include "GameFramework/GameStateBase.h"
+#include "SGameplayInterface.h"
+#include "Serialization/ObjectAndNameAsStringProxyArchive.h"
 
 static TAutoConsoleVariable<bool> CVarSpawnBots(TEXT("su.SpawnBots"), true, TEXT("Enable spawning of bots via timer"), ECVF_Cheat);
 
@@ -22,6 +26,13 @@ static TAutoConsoleVariable<bool> CVarSpawnBots(TEXT("su.SpawnBots"), true, TEXT
 ASGameModeBase::ASGameModeBase()
 {
 	SpawnTimerInterval = 2.0f;
+	SlotName = "SaveGame01";
+}
+
+void ASGameModeBase::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
+{
+	Super::InitGame(MapName, Options, ErrorMessage);
+	LoadSaveGame();
 }
 
 void ASGameModeBase::StartPlay()
@@ -31,6 +42,17 @@ void ASGameModeBase::StartPlay()
 
 	//set up a timer
 	GetWorldTimerManager().SetTimer(TimerHandle_SpawnBots, this, &ASGameModeBase::SpawnTimerElapsed, SpawnTimerInterval, true);
+}
+
+void ASGameModeBase::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
+{
+	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
+
+	ASPlayerState* PS = NewPlayer->GetPlayerState<ASPlayerState>();
+	if (PS)
+	{
+		PS->LoadPlayerState(CurrentSaveGame);
+	}
 }
 
 void ASGameModeBase::KillAll()
@@ -48,8 +70,6 @@ void ASGameModeBase::KillAll()
 	}
 		
 	}
-
-
 
 void ASGameModeBase::SpawnTimerElapsed()
 {
@@ -151,3 +171,100 @@ void ASGameModeBase::OnActorKilled(AActor* VictimActor, AActor* Killed)
 
 	UE_LOG(LogTemp, Log, TEXT("OnActorKilled: Victim: %s, Killer: %s"), *GetNameSafe(VictimActor), *GetNameSafe(Killed));
 }
+
+
+void ASGameModeBase::WriteSaveGame()
+{
+	// Iterate all player states, we don't have proper ID to match yet (requires Steam or EOS)
+	for (int32 i = 0; i < GameState->PlayerArray.Num(); i++)
+	{
+		ASPlayerState* PS = Cast<ASPlayerState>(GameState->PlayerArray[i]);
+		if (PS)
+		{
+			PS->SavePlayerState(CurrentSaveGame);
+			break; // single player only at this point
+		}
+	}
+
+
+	CurrentSaveGame->SavedActors.Empty();
+
+	for (FActorIterator It(GetWorld()); It; ++It)
+	{
+		AActor* Actor = *It;
+
+		if (!Actor->Implements<USGamePlayInterface>())
+		{
+			continue;
+		}
+
+		FActorSaveData ActorData;
+		ActorData.ActorName = Actor->GetName();
+		ActorData.Transform = Actor->GetActorTransform();
+
+		// Pass the array to fill with data from Actor
+		FMemoryWriter MemWriter(ActorData.ByteData);
+
+		FObjectAndNameAsStringProxyArchive Ar(MemWriter, true);
+		// Find only variables with UPROPERTY(SaveGame)
+		Ar.ArIsSaveGame = true;
+		// Converts Actor's SaveGame UPROPERTIES into binary array
+		Actor->Serialize(Ar);
+
+		CurrentSaveGame->SavedActors.Add(ActorData);
+	}
+
+	UGameplayStatics::SaveGameToSlot(CurrentSaveGame, SlotName, 0);
+}
+
+void ASGameModeBase::LoadSaveGame()
+{
+	if (UGameplayStatics::DoesSaveGameExist(SlotName, 0))
+	{
+		CurrentSaveGame = Cast<USSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName, 0));
+		if (CurrentSaveGame == nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Failed To Load SaveGame Data!"));
+			return;
+		}
+		UE_LOG(LogTemp, Log, TEXT("Successfully Loaded SaveGame Data!"));
+
+		for (FActorIterator It(GetWorld()); It; ++It)
+		{
+			AActor* Actor = *It;
+
+			if (!Actor->Implements<USGamePlayInterface>())
+			{
+				continue;
+			}
+
+			for (FActorSaveData ActorData : CurrentSaveGame->SavedActors)
+			{
+				if (ActorData.ActorName == Actor->GetName())
+				{
+					Actor->SetActorTransform(ActorData.Transform);
+
+					FMemoryReader MemReader(ActorData.ByteData);
+
+					FObjectAndNameAsStringProxyArchive Ar(MemReader, true);
+					// Find only variables with UPROPERTY(SaveGame)
+					Ar.ArIsSaveGame = true;
+					// Converts Actor's SaveGame UPROPERTIES into binary array
+					Actor->Serialize(Ar);
+
+					ISGamePlayInterface::Execute_OnActorLoaded(Actor);
+
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		CurrentSaveGame = Cast<USSaveGame>(UGameplayStatics::CreateSaveGameObject(USSaveGame::StaticClass()));
+		UE_LOG(LogTemp, Log, TEXT("Successfully Created New SaveGame Data!"));
+	}
+
+}
+
+
